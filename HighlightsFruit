@@ -1,0 +1,68 @@
+local RunService = game:GetService("RunService")
+local fruitsContainer = workspace:WaitForChild("Fruits") -- Replace 'Fruits' with the actual name of the fruit parent container
+
+-- Function to highlight and label a fruit
+local function highlightFruit(fruit)
+    if not fruit:IsA("Model") then return end -- Check if it's a fruit model
+
+    local fruitName = fruit:FindFirstChild("Name") or fruit.Name -- Get the fruit's name
+    local primaryPart = fruit.PrimaryPart or fruit:FindFirstChild("Main") -- The main part of the fruit
+    
+    if primaryPart then
+        -- Add BillboardGui to display the name
+        if not primaryPart:FindFirstChild("FruitNameGui") then
+            local billboardGui = Instance.new("BillboardGui")
+            billboardGui.Size = UDim2.new(4, 0, 1, 0)
+            billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+            billboardGui.AlwaysOnTop = true
+            billboardGui.Name = "FruitNameGui"
+
+            local textLabel = Instance.new("TextLabel")
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.Text = fruitName
+            textLabel.TextColor3 = Color3.new(1, 0, 0) -- Red color for fruit names
+            textLabel.BackgroundTransparency = 1
+            textLabel.TextScaled = true
+            textLabel.Parent = billboardGui
+
+            billboardGui.Parent = primaryPart
+        end
+
+        -- Add Highlight effect to the fruit
+        if not fruit:FindFirstChild("Highlight") then
+            local highlight = Instance.new("Highlight")
+            highlight.Adornee = fruit
+            highlight.FillTransparency = 0.6
+            highlight.OutlineTransparency = 0
+            highlight.FillColor = Color3.new(0.3, 0.8, 0.3) -- Green for fruits
+            highlight.OutlineColor = Color3.new(1, 1, 1) -- White outline
+            highlight.Parent = fruit
+        end
+    else
+        warn("No PrimaryPart found for fruit: " .. fruit.Name)
+    end
+end
+
+-- Function to process existing and newly added fruits
+local function setupFruitHighlighting()
+    for _, fruit in ipairs(fruitsContainer:GetChildren()) do
+        highlightFruit(fruit)
+    end
+
+    -- Detect new fruits added to the container
+    fruitsContainer.ChildAdded:Connect(function(fruit)
+        highlightFruit(fruit)
+    end)
+end
+
+-- Run setup when the script starts
+setupFruitHighlighting()
+
+-- Safety loop for real-time highlighting (optional, in case of delays)
+RunService.Heartbeat:Connect(function()
+    for _, fruit in ipairs(fruitsContainer:GetChildren()) do
+        if not fruit:FindFirstChild("Highlight") then
+            highlightFruit(fruit)
+        end
+    end
+end)
